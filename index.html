@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0A0A0A" id="themeColor"/>
 </head>
 <body class="dark">
 
@@ -160,5 +162,43 @@
 
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script>
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[FITPRO] SW enregistré :', reg.scope))
+          .catch(err => console.warn('[FITPRO] SW échec :', err));
+      });
+    }
+
+    // Offline / online banner
+    function updateOnlineStatus() {
+      let banner = document.getElementById('offlineBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'offlineBanner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:8px 16px;text-align:center;font-family:var(--font-body);font-size:12px;font-weight:500;letter-spacing:.5px;transition:transform .3s ease;';
+        document.body.appendChild(banner);
+      }
+      if (!navigator.onLine) {
+        banner.textContent = '📵 Hors-ligne — toutes tes données sont disponibles';
+        banner.style.background = '#1A1A1A';
+        banner.style.color = '#E8FF47';
+        banner.style.borderBottom = '1px solid rgba(232,255,71,0.2)';
+        banner.style.transform = 'translateY(0)';
+      } else {
+        banner.textContent = '✅ Connexion rétablie';
+        banner.style.background = '#065F46';
+        banner.style.color = '#6EE7B7';
+        banner.style.borderBottom = '1px solid rgba(110,231,183,0.2)';
+        banner.style.transform = 'translateY(0)';
+        setTimeout(() => { banner.style.transform = 'translateY(-100%)'; }, 2500);
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    if (!navigator.onLine) updateOnlineStatus();
+  </script>
 </body>
 </html>

@@ -67,6 +67,8 @@ function formatDateFR(iso) {
 function applyTheme(t) {
   document.body.classList.toggle('dark', t === 'dark');
   document.body.classList.toggle('light', t === 'light');
+  const meta = document.getElementById('themeColor');
+  if (meta) meta.content = t === 'dark' ? '#0A0A0A' : '#F0F0EE';
 }
 function toggleTheme() {
   const next = document.body.classList.contains('dark') ? 'light' : 'dark';

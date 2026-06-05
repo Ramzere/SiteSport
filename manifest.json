@@ -1,0 +1,22 @@
+{
+  "name": "FITPRO — Mon Programme",
+  "short_name": "FITPRO",
+  "description": "Programme musculation personnalisé avec timer, journal et calculateur 1RM",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%230A0A0A'/%3E%3Ctext x='50%25' y='58%25' font-family='Georgia,serif' font-size='100' font-weight='700' fill='%23E8FF47' text-anchor='middle' dominant-baseline='middle'%3EF%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230A0A0A'/%3E%3Ctext x='50%25' y='58%25' font-family='Georgia,serif' font-size='280' font-weight='700' fill='%23E8FF47' text-anchor='middle' dominant-baseline='middle'%3EF%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
