@@ -24,6 +24,25 @@
     </button>
   </header>
 
+  <!-- TIMER OVERLAY -->
+  <div class="timer-overlay" id="timerOverlay" style="display:none">
+    <div class="timer-card">
+      <p class="timer-label" id="timerLabel">Repos</p>
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" viewBox="0 0 120 120">
+          <circle class="ring-track" cx="60" cy="60" r="52"/>
+          <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"/>
+        </svg>
+        <span class="timer-display" id="timerDisplay">0:00</span>
+      </div>
+      <p class="timer-next" id="timerNext"></p>
+      <div class="timer-actions">
+        <button class="timer-btn-skip" onclick="skipTimer()">Passer</button>
+        <button class="timer-btn-pause" id="timerPauseBtn" onclick="pauseTimer()">Pause</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="today" onclick="showPage('today')">
@@ -34,9 +53,13 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/></svg>
       <span>Semaine</span>
     </button>
+    <button class="nav-btn" data-page="journal" onclick="showPage('journal')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Journal</span>
+    </button>
     <button class="nav-btn" data-page="test" onclick="showPage('test')">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      <span>1RM Test</span>
+      <span>1RM</span>
     </button>
   </nav>
 
@@ -57,13 +80,10 @@
           <span class="meta-pill" id="progressPill">0% complété</span>
         </div>
       </div>
-
       <div class="progress-bar-wrap">
         <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
       </div>
-
       <div class="session-content" id="sessionContent"></div>
-
       <div class="reset-wrap">
         <button class="reset-btn" onclick="resetDay()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
@@ -75,36 +95,35 @@
     <!-- PAGE WEEK -->
     <div class="page" id="page-week">
       <div class="page-header">
-        <h2 class="page-h2">Programme de la semaine</h2>
+        <h2 class="page-h2">Semaine</h2>
         <p class="page-desc">Lundi → Vendredi · 16h</p>
       </div>
       <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- PAGE JOURNAL -->
+    <div class="page" id="page-journal">
+      <div class="page-header">
+        <h2 class="page-h2">Journal</h2>
+        <p class="page-desc">Historique de tes charges · Progression</p>
+      </div>
+      <div class="journal-exercise-picker" id="journalPicker"></div>
+      <div class="journal-content" id="journalContent"></div>
     </div>
 
     <!-- PAGE TEST 1RM -->
     <div class="page" id="page-test">
       <div class="page-header">
         <h2 class="page-h2">Test 1RM</h2>
-        <p class="page-desc">Calcule tes charges de travail depuis ton max réel</p>
+        <p class="page-desc">Calcule tes charges depuis ton max réel</p>
       </div>
-
       <div class="test-intro-card">
-        <p class="test-intro-text">Effectue une série test à l'échec sur l'exercice choisi. Entre le poids soulevé et le nombre de reps, le calculateur adapte toutes tes charges.</p>
+        <p class="test-intro-text">Effectue une série test à l'échec. Entre le poids et les reps — le calculateur adapte toutes tes charges d'entraînement.</p>
       </div>
-
       <div class="rm-form">
         <div class="form-group">
           <label class="form-label">Exercice</label>
-          <select class="form-select" id="rmExercise">
-            <option value="bench">Développé couché barre</option>
-            <option value="squat">Squat / Hack squat</option>
-            <option value="hip">Hip thrust barre</option>
-            <option value="lat">Lat pulldown</option>
-            <option value="row">Rowing barre</option>
-            <option value="press">Développé militaire machine</option>
-            <option value="leg_curl">Leg curl machine</option>
-            <option value="leg_press">Presse à jambes</option>
-          </select>
+          <select class="form-select" id="rmExercise"></select>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -118,21 +137,19 @@
         </div>
         <button class="calc-btn" onclick="calculateRM()">Calculer mes charges →</button>
       </div>
-
       <div class="rm-result" id="rmResult" style="display:none">
         <div class="rm-result-header">
           <span class="rm-result-label">1RM estimé</span>
           <span class="rm-result-value" id="rmEstimated">—</span>
         </div>
-        <p class="rm-result-sub">Charges recommandées pour chaque intensité :</p>
+        <p class="rm-result-sub">Charges par intensité</p>
         <div class="rm-zones" id="rmZones"></div>
         <div class="rm-sets-table" id="rmSetsTable"></div>
-        <button class="save-btn" onclick="saveRM()">
+        <button class="save-btn" id="saveBtnRM" onclick="saveRM()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Sauvegarder ces charges
         </button>
       </div>
-
       <div class="saved-rm-section" id="savedRmSection">
         <h3 class="saved-rm-title">Charges sauvegardées</h3>
         <div id="savedRmList"></div>
