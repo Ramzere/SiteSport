@@ -264,3 +264,26 @@ body.dark .saved-rm-value { color:var(--accent); }
 .delete-rm-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border2); background:transparent; color:var(--text3); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
 .delete-rm-btn:active { background:var(--warn-bg); color:var(--warn-text); }
 ::-webkit-scrollbar { width:0; background:transparent; }
+
+/* ===================== FOOTER ===================== */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px 20px;
+}
+.app-version {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--text3);
+}
+body.dark .app-version { color: var(--accent); opacity: 0.5; }
+.app-sep { font-size: 12px; color: var(--text3); }
+.app-copyright {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 300;
+  letter-spacing: 0.3px;
+}
