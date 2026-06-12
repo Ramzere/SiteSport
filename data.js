@@ -149,54 +149,6 @@ const PROGRAM = [
   {
     day: 3,
     label: "Jeudi",
-    type: "legs2",
-    typeLabel: "JAMBES",
-    title: "Fessiers · Force · Gainage",
-    subtitle: "Séance lourde + abdos",
-    duration: "~58 min",
-    color: "#DC2626",
-    sections: [
-      {
-        name: "Échauffement",
-        icon: "🔥",
-        exercises: [
-          { id: "j_w1", name: "Vélo", sets: "5 min", rest: null, note: null, warn: null },
-          { id: "j_w2", name: "Monster walk élastique", sets: "2 × 15 pas", rest: "0 sec", note: null, warn: null },
-          { id: "j_w3", name: "Clamshell", sets: "2 × 15", rest: null, note: null, warn: null }
-        ]
-      },
-      {
-        name: "Force Fessiers",
-        icon: "💪",
-        exercises: [
-          { id: "j_f1", name: "Hip thrust barre (charge max semaine)", sets: "5 × 8 reps", rest: "Repos : 2 min", note: "CHARGE MAX · Contraction 1 sec en haut", warn: null, rmKey: "hip", targetPct: 0.82 },
-          { id: "j_f2", name: "Presse à jambes pieds hauts et écartés", sets: "4 × 10 reps · amplitude 70–80°", rest: "Repos : 90 sec", note: null, warn: "Ne pas verrouiller les genoux", rmKey: "leg_press", targetPct: 0.72 }
-        ]
-      },
-      {
-        name: "Isolation Jambes",
-        icon: "🦵",
-        exercises: [
-          { id: "j_i1", name: "Fente bulgare haltères", sets: "3 × 10 reps chaque jambe", rest: "Repos : 90 sec", note: null, warn: "Douleur tibiale → remplacer par abduction + pont" },
-          { id: "j_i2", name: "Leg curl assis machine", sets: "3 × 15 reps · retour 3 sec", rest: "Repos : 60 sec", note: null, warn: null, rmKey: "leg_curl", targetPct: 0.60 },
-          { id: "j_i3", name: "Adduction hanche machine", sets: "3 × 20 reps · charge modérée", rest: "Repos : 45 sec", note: "Équilibre musculaire genou", warn: null }
-        ]
-      },
-      {
-        name: "Core",
-        icon: "🎯",
-        exercises: [
-          { id: "j_c1", name: "Planche levée de jambe alternée", sets: "3 × 10 reps chaque côté", rest: "Repos : 45 sec", note: null, warn: null },
-          { id: "j_c2", name: "Leg raise allongé", sets: "3 × 15 reps", rest: "Repos : 45 sec", note: "Bas du dos collé au sol", warn: null }
-        ]
-      }
-    ],
-    cooldown: ["Foam roller face latérale cuisse 2 min", "Pigeon yoga 2×40 sec", "Glaçons tibia si besoin"]
-  },
-
-  {
-    day: 4,
-    label: "Vendredi",
     type: "swim",
     typeLabel: "PISCINE",
     title: "Natation — Cardio & Récup",
@@ -240,6 +192,54 @@ const PROGRAM = [
       }
     ],
     cooldown: []
+  },
+
+  {
+    day: 4,
+    label: "Vendredi",
+    type: "legs2",
+    typeLabel: "JAMBES",
+    title: "Fessiers · Force · Gainage",
+    subtitle: "Séance lourde + abdos",
+    duration: "~58 min",
+    color: "#DC2626",
+    sections: [
+      {
+        name: "Échauffement",
+        icon: "🔥",
+        exercises: [
+          { id: "j_w1", name: "Vélo", sets: "5 min", rest: null, note: null, warn: null },
+          { id: "j_w2", name: "Monster walk élastique", sets: "2 × 15 pas", rest: "0 sec", note: null, warn: null },
+          { id: "j_w3", name: "Clamshell", sets: "2 × 15", rest: null, note: null, warn: null }
+        ]
+      },
+      {
+        name: "Force Fessiers",
+        icon: "💪",
+        exercises: [
+          { id: "j_f1", name: "Hip thrust barre (charge max semaine)", sets: "5 × 8 reps", rest: "Repos : 2 min", note: "CHARGE MAX · Contraction 1 sec en haut", warn: null, rmKey: "hip", targetPct: 0.82 },
+          { id: "j_f2", name: "Presse à jambes pieds hauts et écartés", sets: "4 × 10 reps · amplitude 70–80°", rest: "Repos : 90 sec", note: null, warn: "Ne pas verrouiller les genoux", rmKey: "leg_press", targetPct: 0.72 }
+        ]
+      },
+      {
+        name: "Isolation Jambes",
+        icon: "🦵",
+        exercises: [
+          { id: "j_i1", name: "Fente bulgare haltères", sets: "3 × 10 reps chaque jambe", rest: "Repos : 90 sec", note: null, warn: "Douleur tibiale → remplacer par abduction + pont" },
+          { id: "j_i2", name: "Leg curl assis machine", sets: "3 × 15 reps · retour 3 sec", rest: "Repos : 60 sec", note: null, warn: null, rmKey: "leg_curl", targetPct: 0.60 },
+          { id: "j_i3", name: "Adduction hanche machine", sets: "3 × 20 reps · charge modérée", rest: "Repos : 45 sec", note: "Équilibre musculaire genou", warn: null }
+        ]
+      },
+      {
+        name: "Core",
+        icon: "🎯",
+        exercises: [
+          { id: "j_c1", name: "Planche levée de jambe alternée", sets: "3 × 10 reps chaque côté", rest: "Repos : 45 sec", note: null, warn: null },
+          { id: "j_c2", name: "Leg raise allongé", sets: "3 × 15 reps", rest: "Repos : 45 sec", note: "Bas du dos collé au sol", warn: null }
+        ]
+      }
+    ],
+    cooldown: ["Foam roller face latérale cuisse 2 min", "Pigeon yoga 2×40 sec", "Glaçons tibia si besoin"]
   }
 ];
 
