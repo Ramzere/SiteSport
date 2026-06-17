@@ -1,5 +1,5 @@
 // ============================================================
-//  FITPRO v3.3 — App Logic
+//  FITPRO v4.0 — App Logic
 //  © 2025 RémiRodriguez
 //  + Timer de repos automatique
 //  + Journal de charges avec progression
