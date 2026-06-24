@@ -1,10 +1,10 @@
 // ============================================================
-//  FITPRO v4.0 — Service Worker
+//  FITPRO v4.1 — Service Worker
 //  © 2025 RémiRodriguez
 //  Cache-first strategy : fonctionne 100% hors-ligne
 // ============================================================
 
-const CACHE_NAME = 'fitpro-v4.0';
+const CACHE_NAME = 'fitpro-v4.1';
 
 const ASSETS = [
   './',
