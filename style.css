@@ -175,6 +175,11 @@ body.light .today-dot { background:rgba(0,0,0,0.06); }
 .week-pct { font-size:11px; color:var(--text3); min-width:30px; text-align:right; }
 
 /* ===================== JOURNAL ===================== */
+.journal-day-filter { display:flex; gap:6px; padding:0 16px 10px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.journal-day-filter::-webkit-scrollbar { display:none; }
+.journal-day-pill { flex-shrink:0; padding:6px 12px; border-radius:100px; border:1px solid var(--border2); background:transparent; color:var(--text3); font-family:var(--font-body); font-size:11px; cursor:pointer; transition:all 0.15s; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+.journal-day-pill.active { background:var(--text); color:#fff; border-color:transparent; }
+body.dark .journal-day-pill.active { color:#0A0A0A; }
 .journal-picker-scroll { display:flex; gap:8px; padding:0 16px 16px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 .journal-picker-scroll::-webkit-scrollbar { display:none; }
 .journal-pill { flex-shrink:0; padding:8px 16px; border-radius:100px; border:1px solid var(--border2); background:transparent; color:var(--text2); font-family:var(--font-body); font-size:12px; cursor:pointer; transition:all 0.15s; white-space:nowrap; -webkit-tap-highlight-color:transparent; }

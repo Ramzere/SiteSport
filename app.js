@@ -35,7 +35,9 @@ function setSavedRM(o) { localStorage.setItem(sk('rm'), JSON.stringify(o)); }
 function getTheme() { return localStorage.getItem(sk('theme')) || 'dark'; }
 function setThemeSt(t) { localStorage.setItem(sk('theme'), t); }
 
-// JOURNAL STORAGE — structure: { exId: [ { date, weight, reps, note }, ... ] }
+// JOURNAL STORAGE — structure: { exId: [ entry, ... ] }
+// Strength/bodyweight entry: { date, ts, note, weight, reps }
+// Cardio entry:              { date, ts, note, duration, distance }
 function getJournal() { try { return JSON.parse(localStorage.getItem(sk('journal'))) || {}; } catch { return {}; } }
 function setJournal(o) { localStorage.setItem(sk('journal'), JSON.stringify(o)); }
 
@@ -44,6 +46,20 @@ function addJournalEntry(exId, weight, reps, note) {
   if (!j[exId]) j[exId] = [];
   j[exId].unshift({ date: todayISO(), weight: parseFloat(weight), reps: parseInt(reps), note: note || '', ts: Date.now() });
   // Keep max 52 entries per exercise
+  if (j[exId].length > 52) j[exId] = j[exId].slice(0, 52);
+  setJournal(j);
+}
+
+function addCardioJournalEntry(exId, duration, distance, note) {
+  const j = getJournal();
+  if (!j[exId]) j[exId] = [];
+  j[exId].unshift({
+    date: todayISO(),
+    duration: duration ? parseFloat(duration) : null,
+    distance: distance ? parseFloat(distance) : null,
+    note: note || '',
+    ts: Date.now()
+  });
   if (j[exId].length > 52) j[exId] = j[exId].slice(0, 52);
   setJournal(j);
 }
@@ -63,6 +79,13 @@ function formatDateFR(iso) {
   const [y, m, day] = iso.split('-');
   const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
   return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function formatCardioVal(entry) {
+  const parts = [];
+  if (entry.duration) parts.push(`${entry.duration} min`);
+  if (entry.distance) parts.push(`${entry.distance} km`);
+  return parts.length > 0 ? parts.join(' · ') : '—';
 }
 
 // ---------- THEME ----------
@@ -264,6 +287,8 @@ function renderToday() {
       const nextEx = allExFlat[flatIdx + 1];
       const nextName = nextEx ? nextEx.name : '';
 
+      const logType = ex.logType || 'strength';
+
       // Suggested weight from 1RM
       let suggestedKg = null;
       if (ex.rmKey && saved[ex.rmKey]) {
@@ -273,15 +298,6 @@ function renderToday() {
       // Last journal entries (max 3)
       const jEntries = (journal[ex.id] || []).slice(0, 3);
       const lastEntry = jEntries.length > 0 ? jEntries[0] : null;
-
-      const isWeighted = ex.rmKey || (!ex.name.toLowerCase().includes('vélo')
-        && !ex.name.toLowerCase().includes('rameur')
-        && !ex.name.toLowerCase().includes('marche sur')
-        && !ex.name.toLowerCase().includes('battements')
-        && !ex.name.toLowerCase().includes('crawl')
-        && !ex.name.toLowerCase().includes('brasse')
-        && !ex.name.toLowerCase().includes('dos crawlé')
-        && !ex.name.toLowerCase().includes('pull-buoy'));
 
       // Series dots
       const nSets = parseSetsCount(ex.sets);
@@ -317,10 +333,15 @@ function renderToday() {
           ${ex.note ? `<p class="ex-note">${ex.note}</p>` : ''}
           ${ex.warn ? `<p class="ex-warn">⚠️ ${ex.warn}</p>` : ''}
           ${suggestedKg !== null ? `<div class="hint-row"><span class="hint-badge">📊 Suggéré</span><span class="hint-val">${suggestedKg} kg</span></div>` : ''}
-          ${lastEntry ? `<div class="hint-row"><span class="hint-badge">🕐 Dernière fois</span><span class="hint-val">${lastEntry.weight} kg × ${lastEntry.reps}</span><span class="hint-date">${formatDateFR(lastEntry.date)}</span></div>` : ''}
-          ${isWeighted ? `<button class="log-btn" onclick="openLogModal('${ex.id}','${ex.name.replace(/'/g,"\'")}',${suggestedKg||0},${lastEntry ? lastEntry.weight : 0},${lastEntry ? lastEntry.reps : 0})">
+          ${lastEntry && logType === 'strength' ? `<div class="hint-row"><span class="hint-badge">🕐 Dernière fois</span><span class="hint-val">${lastEntry.weight} kg × ${lastEntry.reps}</span><span class="hint-date">${formatDateFR(lastEntry.date)}</span></div>` : ''}
+          ${lastEntry && logType === 'cardio' ? `<div class="hint-row"><span class="hint-badge">🕐 Dernière fois</span><span class="hint-val">${formatCardioVal(lastEntry)}</span><span class="hint-date">${formatDateFR(lastEntry.date)}</span></div>` : ''}
+          ${logType === 'strength' ? `<button class="log-btn" onclick="openLogModal('${ex.id}','${ex.name.replace(/'/g,"\'")}',${suggestedKg||0},${lastEntry ? lastEntry.weight : 0},${lastEntry ? lastEntry.reps : 0})">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             ${jEntries.length > 0 ? 'Saisir cette séance' : 'Enregistrer charges'}
+          </button>` : ''}
+          ${logType === 'cardio' ? `<button class="log-btn" onclick="openCardioLogModal('${ex.id}','${ex.name.replace(/'/g,"\'")}',${lastEntry && lastEntry.duration ? lastEntry.duration : 0},${lastEntry && lastEntry.distance ? lastEntry.distance : 0})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ${jEntries.length > 0 ? 'Saisir cette séance' : 'Enregistrer la séance'}
           </button>` : ''}
         </div>
       </div>`;
@@ -413,6 +434,99 @@ function injectLogModal() {
       </div>
     </div>`;
   document.body.appendChild(modal);
+}
+
+// ── CARDIO MODAL ─────────────────────────────────────────────
+let currentCardioExId = '';
+
+function injectCardioLogModal() {
+  if (document.getElementById('cardioLogModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'cardioLogModal';
+  modal.className = 'log-modal';
+  modal.style.display = 'none';
+  modal.innerHTML = `
+    <div class="log-modal-card">
+      <div class="lm-header">
+        <div>
+          <p class="lm-title" id="cardioModalTitle">Enregistrer</p>
+          <p class="lm-subtitle" id="cardioModalSub"></p>
+        </div>
+        <button class="lm-close" onclick="closeCardioLogModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="lm-input-block">
+        <p class="lm-section-label">Durée</p>
+        <div class="lm-weight-row">
+          <button class="lm-step-btn" onclick="stepCardio('duration',-5)">−5</button>
+          <div class="lm-field-wrap">
+            <input class="lm-input-big" type="number" id="cardioDuration" placeholder="min" min="0" max="600" step="1" inputmode="numeric"/>
+            <span class="lm-input-unit">min</span>
+          </div>
+          <button class="lm-step-btn" onclick="stepCardio('duration',5)">+5</button>
+        </div>
+        <p class="lm-section-label">Distance (optionnel)</p>
+        <div class="lm-reps-row">
+          <button class="lm-step-btn" onclick="stepCardio('distance',-1)">−1</button>
+          <div class="lm-field-wrap">
+            <input class="lm-input-big" type="number" id="cardioDistance" placeholder="km" min="0" max="300" step="0.5" inputmode="decimal"/>
+            <span class="lm-input-unit">km</span>
+          </div>
+          <button class="lm-step-btn" onclick="stepCardio('distance',1)">+1</button>
+        </div>
+      </div>
+
+      <div class="lm-note-row">
+        <input class="lm-note-input" type="text" id="cardioNote" placeholder="Note (ressenti, douleur...)"/>
+      </div>
+
+      <div class="lm-footer">
+        <button class="log-cancel-btn" onclick="closeCardioLogModal()">Annuler</button>
+        <button class="log-save-btn" onclick="saveCardioLogEntry()">Sauvegarder</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function openCardioLogModal(exId, exName, lastDuration, lastDistance) {
+  injectCardioLogModal();
+  currentCardioExId = exId;
+  document.getElementById('cardioModalTitle').textContent = exName;
+
+  let sub = '';
+  if (lastDuration > 0 || lastDistance > 0) sub = `🕐 Dernière : ${lastDuration > 0 ? lastDuration + ' min' : ''}${lastDuration > 0 && lastDistance > 0 ? ' · ' : ''}${lastDistance > 0 ? lastDistance + ' km' : ''}`;
+  document.getElementById('cardioModalSub').textContent = sub;
+
+  document.getElementById('cardioDuration').value = lastDuration > 0 ? lastDuration : '';
+  document.getElementById('cardioDistance').value = lastDistance > 0 ? lastDistance : '';
+  document.getElementById('cardioNote').value = '';
+
+  document.getElementById('cardioLogModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('cardioDuration').focus(), 120);
+}
+
+function closeCardioLogModal() {
+  const m = document.getElementById('cardioLogModal');
+  if (m) m.style.display = 'none';
+}
+
+function stepCardio(field, delta) {
+  const el = document.getElementById(field === 'duration' ? 'cardioDuration' : 'cardioDistance');
+  const cur = parseFloat(el.value) || 0;
+  el.value = Math.max(0, cur + delta);
+}
+
+function saveCardioLogEntry() {
+  const duration = document.getElementById('cardioDuration').value;
+  const distance = document.getElementById('cardioDistance').value;
+  const note = document.getElementById('cardioNote').value;
+  if (!duration && !distance) { showToast('⚠️ Entre au moins la durée ou la distance'); return; }
+  addCardioJournalEntry(currentCardioExId, duration, distance, note);
+  closeCardioLogModal();
+  renderToday();
+  showToast('✅ Séance enregistrée');
 }
 
 // ── MODAL LOGIC ──────────────────────────────────────────────
@@ -641,16 +755,16 @@ function goToDay(idx) {
 //  JOURNAL PAGE
 // ============================================================
 
-// Build list of all weighted exercises from program
-function getWeightedExercises() {
+// Build list of ALL exercises from the program (every day, every section)
+function getLoggableExercises() {
   const list = [];
   const seen = new Set();
   PROGRAM.forEach(day => {
     day.sections.forEach(sec => {
       sec.exercises.forEach(ex => {
-        if (ex.rmKey && !seen.has(ex.id)) {
+        if (!seen.has(ex.id)) {
           seen.add(ex.id);
-          list.push({ id: ex.id, name: ex.name, day: day.label, color: day.color });
+          list.push({ id: ex.id, name: ex.name, day: day.label, color: day.color, logType: ex.logType || 'strength' });
         }
       });
     });
@@ -658,19 +772,39 @@ function getWeightedExercises() {
   return list;
 }
 
+let journalDayFilter = 'all';
+
 function renderJournalPicker() {
-  const exList = getWeightedExercises();
+  const exList = getLoggableExercises();
   if (!selectedJournalExercise && exList.length > 0) selectedJournalExercise = exList[0].id;
 
+  const days = PROGRAM.map(d => d.label);
+
+  let filterHtml = `<div class="journal-day-filter">
+    <button class="journal-day-pill ${journalDayFilter === 'all' ? 'active' : ''}" onclick="setJournalDayFilter('all')">Tous</button>
+    ${days.map(d => `<button class="journal-day-pill ${journalDayFilter === d ? 'active' : ''}" onclick="setJournalDayFilter('${d}')">${d}</button>`).join('')}
+  </div>`;
+
+  const filtered = journalDayFilter === 'all' ? exList : exList.filter(ex => ex.day === journalDayFilter);
+  if (!filtered.find(e => e.id === selectedJournalExercise) && filtered.length > 0) {
+    selectedJournalExercise = filtered[0].id;
+  }
+
   let html = '<div class="journal-picker-scroll">';
-  exList.forEach(ex => {
+  filtered.forEach(ex => {
     html += `<button class="journal-pill ${selectedJournalExercise === ex.id ? 'active' : ''}"
       style="${selectedJournalExercise === ex.id ? '--pill-color:'+ex.color : ''}"
       onclick="selectJournalEx('${ex.id}')">${ex.name.split(' ').slice(0,3).join(' ')}</button>`;
   });
   html += '</div>';
-  document.getElementById('journalPicker').innerHTML = html;
+  document.getElementById('journalPicker').innerHTML = filterHtml + html;
   renderJournalContent();
+}
+
+function setJournalDayFilter(day) {
+  journalDayFilter = day;
+  selectedJournalExercise = null;
+  renderJournalPicker();
 }
 
 function selectJournalEx(exId) {
@@ -686,51 +820,16 @@ function renderJournalContent() {
 
   const journal = getJournal();
   const entries = journal[selectedJournalExercise] || [];
-  const exList = getWeightedExercises();
+  const exList = getLoggableExercises();
   const exInfo = exList.find(e => e.id === selectedJournalExercise);
+  const logType = exInfo ? exInfo.logType : 'strength';
 
   let html = '';
 
-  // Stats summary
-  if (entries.length > 0) {
-    const weights = entries.map(e => e.weight);
-    const maxW = Math.max(...weights);
-    const lastW = entries[0].weight;
-    const firstW = entries[entries.length-1].weight;
-    const progression = lastW - firstW;
-
-    html += `<div class="journal-stats">
-      <div class="jstat-card">
-        <p class="jstat-label">Max soulevé</p>
-        <p class="jstat-value" style="color:${exInfo ? exInfo.color : 'var(--text)'}">${maxW} kg</p>
-      </div>
-      <div class="jstat-card">
-        <p class="jstat-label">Dernière séance</p>
-        <p class="jstat-value">${lastW} kg</p>
-      </div>
-      <div class="jstat-card">
-        <p class="jstat-label">Progression</p>
-        <p class="jstat-value ${progression >= 0 ? 'pos' : 'neg'}">${progression >= 0 ? '+' : ''}${progression.toFixed(1)} kg</p>
-      </div>
-    </div>`;
-
-    // Mini bar chart (last 8 entries reversed = oldest first)
-    const chartEntries = [...entries].reverse().slice(-8);
-    const maxChart = Math.max(...chartEntries.map(e => e.weight));
-    html += `<div class="journal-chart">
-      <p class="chart-title">Évolution du poids (${chartEntries.length} dernières séances)</p>
-      <div class="chart-bars">`;
-    chartEntries.forEach(e => {
-      const h = Math.round((e.weight / maxChart) * 100);
-      html += `<div class="chart-col">
-        <span class="chart-val">${e.weight}</span>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:${h}%;background:${exInfo ? exInfo.color : '#888'}"></div>
-        </div>
-        <span class="chart-date">${e.date.slice(5).replace('-','/')}</span>
-      </div>`;
-    });
-    html += `</div></div>`;
+  if (logType === 'cardio') {
+    html += renderCardioStats(entries, exInfo);
+  } else {
+    html += renderStrengthStats(entries, exInfo);
   }
 
   // Entry list
@@ -741,8 +840,23 @@ function renderJournalContent() {
   if (entries.length === 0) {
     html += `<div class="journal-empty">
       <p>Aucune entrée pour cet exercice.</p>
-      <p style="font-size:12px;margin-top:6px">Coche un exercice et clique sur "+ Enregistrer charges" pendant ta séance.</p>
+      <p style="font-size:12px;margin-top:6px">Coche un exercice et clique sur "+ Enregistrer" pendant ta séance.</p>
     </div>`;
+  } else if (logType === 'cardio') {
+    entries.forEach(e => {
+      html += `<div class="journal-entry-card">
+        <div class="jentry-left">
+          <p class="jentry-date">${formatDateFR(e.date)}</p>
+          ${e.note ? `<p class="jentry-note">${e.note}</p>` : ''}
+        </div>
+        <div class="jentry-right">
+          <p class="jentry-main">${formatCardioVal(e)}</p>
+        </div>
+        <button class="jentry-delete" onclick="deleteEntry('${selectedJournalExercise}', ${e.ts})" aria-label="Supprimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>`;
+    });
   } else {
     entries.forEach(e => {
       const vol = (e.weight * e.reps).toFixed(0);
@@ -763,6 +877,93 @@ function renderJournalContent() {
   }
 
   document.getElementById('journalContent').innerHTML = html;
+}
+
+function renderStrengthStats(entries, exInfo) {
+  if (entries.length === 0) return '';
+  const weights = entries.map(e => e.weight);
+  const maxW = Math.max(...weights);
+  const lastW = entries[0].weight;
+  const firstW = entries[entries.length-1].weight;
+  const progression = lastW - firstW;
+
+  let html = `<div class="journal-stats">
+    <div class="jstat-card">
+      <p class="jstat-label">Max soulevé</p>
+      <p class="jstat-value" style="color:${exInfo ? exInfo.color : 'var(--text)'}">${maxW} kg</p>
+    </div>
+    <div class="jstat-card">
+      <p class="jstat-label">Dernière séance</p>
+      <p class="jstat-value">${lastW} kg</p>
+    </div>
+    <div class="jstat-card">
+      <p class="jstat-label">Progression</p>
+      <p class="jstat-value ${progression >= 0 ? 'pos' : 'neg'}">${progression >= 0 ? '+' : ''}${progression.toFixed(1)} kg</p>
+    </div>
+  </div>`;
+
+  const chartEntries = [...entries].reverse().slice(-8);
+  const maxChart = Math.max(...chartEntries.map(e => e.weight));
+  html += `<div class="journal-chart">
+    <p class="chart-title">Évolution du poids (${chartEntries.length} dernières séances)</p>
+    <div class="chart-bars">`;
+  chartEntries.forEach(e => {
+    const h = Math.round((e.weight / maxChart) * 100);
+    html += `<div class="chart-col">
+      <span class="chart-val">${e.weight}</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar" style="height:${h}%;background:${exInfo ? exInfo.color : '#888'}"></div>
+      </div>
+      <span class="chart-date">${e.date.slice(5).replace('-','/')}</span>
+    </div>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+function renderCardioStats(entries, exInfo) {
+  if (entries.length === 0) return '';
+  const durations = entries.map(e => e.duration || 0);
+  const distances = entries.map(e => e.distance || 0);
+  const totalDuration = durations.reduce((a,b) => a+b, 0);
+  const totalDistance = distances.reduce((a,b) => a+b, 0);
+  const lastEntry = entries[0];
+
+  let html = `<div class="journal-stats">
+    <div class="jstat-card">
+      <p class="jstat-label">Séances</p>
+      <p class="jstat-value" style="color:${exInfo ? exInfo.color : 'var(--text)'}">${entries.length}</p>
+    </div>
+    <div class="jstat-card">
+      <p class="jstat-label">Total durée</p>
+      <p class="jstat-value">${totalDuration} min</p>
+    </div>
+    <div class="jstat-card">
+      <p class="jstat-label">Total distance</p>
+      <p class="jstat-value">${totalDistance.toFixed(0)} km</p>
+    </div>
+  </div>`;
+
+  const hasDistance = distances.some(d => d > 0);
+  const chartEntries = [...entries].reverse().slice(-8);
+  const field = hasDistance ? 'distance' : 'duration';
+  const maxChart = Math.max(...chartEntries.map(e => e[field] || 0), 1);
+  html += `<div class="journal-chart">
+    <p class="chart-title">Évolution ${hasDistance ? 'de la distance' : 'de la durée'} (${chartEntries.length} dernières séances)</p>
+    <div class="chart-bars">`;
+  chartEntries.forEach(e => {
+    const val = e[field] || 0;
+    const h = Math.round((val / maxChart) * 100);
+    html += `<div class="chart-col">
+      <span class="chart-val">${val}</span>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar" style="height:${h}%;background:${exInfo ? exInfo.color : '#888'}"></div>
+      </div>
+      <span class="chart-date">${e.date.slice(5).replace('-','/')}</span>
+    </div>`;
+  });
+  html += `</div></div>`;
+  return html;
 }
 
 function deleteEntry(exId, ts) {

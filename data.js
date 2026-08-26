@@ -1,8 +1,8 @@
 // ============================================================
-//  DONNÉES DU PROGRAMME v4.1 — 5 jours / semaine
+//  DONNÉES DU PROGRAMME v4.2 — 5 jours / semaine
 //  Périostite tibiale + Syndrome essuie-glace genou droit
 //  Max 7 exercices par séance · Haltères prioritaires
-//  Mardi + Jeudi piscine libre (sans programme détaillé)
+//  Mardi : rugby club · Jeudi : sortie vélo route
 //  © 2025 RémiRodriguez
 // ============================================================
 
@@ -43,7 +43,7 @@ const PROGRAM = [
         name: "Genou + force jambes",
         icon: "🦵",
         exercises: [
-          { id: "l_k1", name: "Abduction hanche haltère allongé", sets: "3 × 20 chaque côté", rest: "Repos : 45 sec", note: "Haltère sur la cuisse — bandelette IT", warn: null },
+          { id: "l_k1", name: "Abduction hanche haltère allongé", sets: "3 × 20 chaque côté", rest: "Repos : 45 sec", note: "Haltère sur la cuisse — bandelette IT", warn: null, rmKey: "hip_abd", targetPct: 0.50 },
           { id: "l_k2", name: "Hip thrust haltères", sets: "4 × 12", rest: "Repos : 75 sec", note: "Haltère posé sur le bassin", warn: null, rmKey: "hip", targetPct: 0.70 },
           { id: "l_k3", name: "Fente statique haltères", sets: "3 × 10 chaque jambe", rest: "Repos : 75 sec", note: "Haltères dans chaque main — genou dans l'axe", warn: "Douleur tibiale → remplacer par goblet squat partiel", rmKey: "squat", targetPct: 0.30 },
           { id: "l_k4", name: "Leg curl couché machine", sets: "3 × 15", rest: "Repos : 60 sec", note: "Machine indispensable — ischios protègent le genou", warn: null, rmKey: "leg_curl", targetPct: 0.60 }
@@ -66,30 +66,32 @@ const PROGRAM = [
   },
 
   // ─────────────────────────────────────────────────────────
-  //  MARDI — Piscine libre
+  //  MARDI — Entraînement Rugby (club)
   // ─────────────────────────────────────────────────────────
   {
     day: 1,
     label: "Mardi",
-    type: "swim",
-    typeLabel: "PISCINE",
-    title: "Piscine libre",
-    subtitle: "Crawl au feeling · Zéro impact",
-    duration: "~45 min",
-    color: "#0891B2",
+    type: "rugby",
+    typeLabel: "RUGBY",
+    title: "Entraînement Rugby",
+    subtitle: "Séance club",
+    duration: "~1h30",
+    color: "#EA580C",
     sections: [
       {
-        name: "Séance libre",
-        icon: "🏊",
+        name: "Séance",
+        icon: "🏉",
         exercises: [
-          { id: "ma_s1", name: "Échauffement crawl tranquille", sets: "200–400m", rest: null, note: "Rythme confortable", warn: null },
-          { id: "ma_s2", name: "Bloc principal crawl", sets: "600–800m au feeling", rest: null, note: "65–75% FCmax · Gainage ventre permanent", warn: null },
-          { id: "ma_s3", name: "Retour calme brasse ou dos", sets: "100–200m", rest: null, note: null, warn: null },
-          { id: "ma_s4", name: "Étirements bord bassin", sets: "5 min", rest: null, note: "Mollets + bandelette IT + épaules", warn: null }
+          { id: "ma_r1", name: "Échauffement + activation", sets: "15–20 min", rest: null, note: "Course, gammes, mobilisation articulaire", warn: null, logType: "cardio" },
+          { id: "ma_r2", name: "Entraînement rugby (club)", sets: "~1h", rest: null, note: "Passes, jeu au sol, contact, opposition", warn: "Vigilance genou/tibia sur les changements d'appui et les contacts", logType: "cardio" },
+          { id: "ma_r3", name: "Retour au calme + étirements", sets: "10 min", rest: null, note: "Mollets + bandelette IT + quadriceps", warn: null, logType: "cardio" }
         ]
       }
     ],
-    cooldown: []
+    cooldown: [
+      "Glaçons genou/tibia si tension (10 min)",
+      "Étirements complets jambes"
+    ]
   },
 
   // ─────────────────────────────────────────────────────────
@@ -120,7 +122,7 @@ const PROGRAM = [
         icon: "💪",
         exercises: [
           { id: "me_f1", name: "Développé couché haltères", sets: "4 × 8–10", rest: "Repos : 2 min", note: "Amplitude complète · plus libre que la barre", warn: null, rmKey: "bench", targetPct: 0.72 },
-          { id: "me_f2", name: "Développé incliné haltères", sets: "3 × 10–12", rest: "Repos : 90 sec", note: "Banc à 45° — haut de pecto", warn: null }
+          { id: "me_f2", name: "Développé incliné haltères", sets: "3 × 10–12", rest: "Repos : 90 sec", note: "Banc à 45° — haut de pecto", warn: null, rmKey: "incline", targetPct: 0.68 }
         ]
       },
       {
@@ -128,8 +130,8 @@ const PROGRAM = [
         icon: "⚡",
         exercises: [
           { id: "me_v1", name: "Développé épaules haltères assis", sets: "3 × 12", rest: "Repos : 75 sec", note: "Coudes à 90° en bas, poussée vers le haut", warn: null, rmKey: "press", targetPct: 0.65 },
-          { id: "me_v2", name: "Élévations latérales haltères", sets: "3 × 15", rest: "Repos : 60 sec", note: "Montée jusqu'à l'horizontal — tempo lent", warn: null },
-          { id: "me_v3", name: "Extension triceps haltère au-dessus tête", sets: "3 × 12", rest: "Repos : 60 sec", note: "Un haltère à deux mains — coudes serrés", warn: null }
+          { id: "me_v2", name: "Élévations latérales haltères", sets: "3 × 15", rest: "Repos : 60 sec", note: "Montée jusqu'à l'horizontal — tempo lent", warn: null, rmKey: "lat_raise", targetPct: 0.55 },
+          { id: "me_v3", name: "Extension triceps haltère au-dessus tête", sets: "3 × 12", rest: "Repos : 60 sec", note: "Un haltère à deux mains — coudes serrés", warn: null, rmKey: "triceps_ext", targetPct: 0.60 }
         ]
       },
       {
@@ -147,30 +149,32 @@ const PROGRAM = [
   },
 
   // ─────────────────────────────────────────────────────────
-  //  JEUDI — Piscine libre
+  //  JEUDI — Sortie vélo route
   // ─────────────────────────────────────────────────────────
   {
     day: 3,
     label: "Jeudi",
-    type: "swim",
-    typeLabel: "PISCINE",
-    title: "Piscine libre",
-    subtitle: "Crawl au feeling · Brûle-graisses",
-    duration: "~45 min",
-    color: "#0369A1",
+    type: "cycling",
+    typeLabel: "VÉLO",
+    title: "Sortie vélo route",
+    subtitle: "Endurance fondamentale · Zéro impact",
+    duration: "~1h–1h30",
+    color: "#2563EB",
     sections: [
       {
-        name: "Séance libre",
-        icon: "🏊",
+        name: "Séance",
+        icon: "🚴",
         exercises: [
-          { id: "j_s1", name: "Échauffement crawl tranquille", sets: "200–400m", rest: null, note: "Rythme confortable", warn: null },
-          { id: "j_s2", name: "Bloc principal crawl", sets: "600–800m au feeling", rest: null, note: "Essaie de pousser un peu plus que mardi", warn: null },
-          { id: "j_s3", name: "Retour calme brasse ou dos", sets: "100–200m", rest: null, note: null, warn: null },
-          { id: "j_s4", name: "Étirements bord bassin", sets: "5 min", rest: null, note: "Mollets + bandelette IT + épaules", warn: null }
+          { id: "j_v1", name: "Échauffement souple", sets: "10–15 min", rest: null, note: "Braquet léger, cadence élevée", warn: null, logType: "cardio" },
+          { id: "j_v2", name: "Sortie route", sets: "45–90 min au feeling", rest: null, note: "Endurance fondamentale · 65–75% FCmax", warn: null, logType: "cardio" },
+          { id: "j_v3", name: "Retour au calme", sets: "10 min", rest: null, note: "Braquet très léger, relâcher les jambes", warn: null, logType: "cardio" }
         ]
       }
     ],
-    cooldown: []
+    cooldown: [
+      "Étirements quadriceps + mollets",
+      "Hydratation + collation de récupération"
+    ]
   },
 
   // ─────────────────────────────────────────────────────────
@@ -207,16 +211,16 @@ const PROGRAM = [
         name: "Volume",
         icon: "⚡",
         exercises: [
-          { id: "v_v1", name: "Pull-over haltère allongé sur banc", sets: "3 × 12", rest: "Repos : 60 sec", note: "Bras tendus — amplitude dos complet", warn: null },
-          { id: "v_v2", name: "Curl biceps haltères alternés", sets: "3 × 12 chaque bras", rest: "Repos : 60 sec", note: "Supination en haut · descente 3 sec", warn: null },
-          { id: "v_v3", name: "Curl marteau haltères", sets: "3 × 12", rest: "Repos : 45 sec", note: "Prise neutre — brachial + avant-bras", warn: null }
+          { id: "v_v1", name: "Pull-over haltère allongé sur banc", sets: "3 × 12", rest: "Repos : 60 sec", note: "Bras tendus — amplitude dos complet", warn: null, rmKey: "pullover", targetPct: 0.65 },
+          { id: "v_v2", name: "Curl biceps haltères alternés", sets: "3 × 12 chaque bras", rest: "Repos : 60 sec", note: "Supination en haut · descente 3 sec", warn: null, rmKey: "curl", targetPct: 0.65 },
+          { id: "v_v3", name: "Curl marteau haltères", sets: "3 × 12", rest: "Repos : 45 sec", note: "Prise neutre — brachial + avant-bras", warn: null, rmKey: "hammer", targetPct: 0.65 }
         ]
       },
       {
         name: "Core — finisher semaine",
         icon: "🔥",
         exercises: [
-          { id: "v_c1", name: "Russian twist haltère", sets: "3 × 20 (10 par côté)", rest: "Repos : 40 sec", note: "Rotation vraie des épaules", warn: null },
+          { id: "v_c1", name: "Russian twist haltère", sets: "3 × 20 (10 par côté)", rest: "Repos : 40 sec", note: "Rotation vraie des épaules", warn: null, rmKey: "twist", targetPct: 0.55 },
           { id: "v_c2", name: "Leg raise allongé", sets: "3 × 15", rest: "Repos : 40 sec", note: "Bas ventre — lombaires au sol", warn: null },
           { id: "v_c3", name: "Hollow body hold", sets: "3 × 30 sec", rest: "Repos : 40 sec", note: "Gainage profond — dos plat au sol", warn: null }
         ]
@@ -230,12 +234,20 @@ const PROGRAM = [
 ];
 
 const RM_EXERCISES = {
-  bench:    { label: "Développé haltères couché",  unit: "kg" },
-  squat:    { label: "Fente / Goblet squat",        unit: "kg" },
-  hip:      { label: "Hip thrust",                  unit: "kg" },
-  lat:      { label: "Lat pulldown",                unit: "kg" },
-  row:      { label: "Rowing haltère",              unit: "kg" },
-  press:    { label: "Développé épaules haltères",  unit: "kg" },
-  leg_curl: { label: "Leg curl machine",            unit: "kg" },
-  leg_press:{ label: "Presse à jambes",             unit: "kg" }
+  bench:       { label: "Développé haltères couché",  unit: "kg" },
+  incline:     { label: "Développé incliné haltères", unit: "kg" },
+  squat:       { label: "Fente / Goblet squat",        unit: "kg" },
+  hip:         { label: "Hip thrust",                  unit: "kg" },
+  hip_abd:     { label: "Abduction hanche haltère",    unit: "kg" },
+  lat:         { label: "Lat pulldown",                unit: "kg" },
+  row:         { label: "Rowing haltère",              unit: "kg" },
+  press:       { label: "Développé épaules haltères",  unit: "kg" },
+  lat_raise:   { label: "Élévations latérales haltères", unit: "kg" },
+  triceps_ext: { label: "Extension triceps haltère",   unit: "kg" },
+  pullover:    { label: "Pull-over haltère",           unit: "kg" },
+  curl:        { label: "Curl biceps haltères",        unit: "kg" },
+  hammer:      { label: "Curl marteau haltères",       unit: "kg" },
+  twist:       { label: "Russian twist haltère",       unit: "kg" },
+  leg_curl:    { label: "Leg curl machine",            unit: "kg" },
+  leg_press:   { label: "Presse à jambes",             unit: "kg" }
 };
