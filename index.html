@@ -55,14 +55,8 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/></svg>
       <span>Semaine</span>
     </button>
-    <button class="nav-btn" data-page="journal" onclick="showPage('journal')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span>Journal</span>
-    </button>
-    <button class="nav-btn" data-page="test" onclick="showPage('test')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      <span>1RM</span>
-    </button>
+
+
   </nav>
 
   <!-- PAGES -->
@@ -93,7 +87,7 @@
         </button>
       </div>
       <div class="app-footer">
-        <span class="app-version">v4.2</span>
+        <span class="app-version">v5.0</span>
         <span class="app-sep">·</span>
         <span class="app-copyright">© 2025 RémiRodriguez</span>
       </div>
@@ -106,64 +100,7 @@
         <p class="page-desc">Lundi → Vendredi · 16h</p>
       </div>
       <div class="week-grid" id="weekGrid"></div>
-    </div>
-
-    <!-- PAGE JOURNAL -->
-    <div class="page" id="page-journal">
-      <div class="page-header">
-        <h2 class="page-h2">Journal</h2>
-        <p class="page-desc">Stats de tous tes exercices · Progression</p>
-      </div>
-      <div class="journal-exercise-picker" id="journalPicker"></div>
-      <div class="journal-content" id="journalContent"></div>
-    </div>
-
-    <!-- PAGE TEST 1RM -->
-    <div class="page" id="page-test">
-      <div class="page-header">
-        <h2 class="page-h2">Test 1RM</h2>
-        <p class="page-desc">Calcule tes charges depuis ton max réel</p>
-      </div>
-      <div class="test-intro-card">
-        <p class="test-intro-text">Effectue une série test à l'échec. Entre le poids et les reps — le calculateur adapte toutes tes charges d'entraînement.</p>
-      </div>
-      <div class="rm-form">
-        <div class="form-group">
-          <label class="form-label">Exercice</label>
-          <select class="form-select" id="rmExercise"></select>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Poids testé (kg)</label>
-            <input class="form-input" type="number" id="rmWeight" placeholder="ex: 60" min="1" max="300"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Reps réalisées</label>
-            <input class="form-input" type="number" id="rmReps" placeholder="ex: 8" min="1" max="30"/>
-          </div>
-        </div>
-        <button class="calc-btn" onclick="calculateRM()">Calculer mes charges →</button>
-      </div>
-      <div class="rm-result" id="rmResult" style="display:none">
-        <div class="rm-result-header">
-          <span class="rm-result-label">1RM estimé</span>
-          <span class="rm-result-value" id="rmEstimated">—</span>
-        </div>
-        <p class="rm-result-sub">Charges par intensité</p>
-        <div class="rm-zones" id="rmZones"></div>
-        <div class="rm-sets-table" id="rmSetsTable"></div>
-        <button class="save-btn" id="saveBtnRM" onclick="saveRM()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Sauvegarder ces charges
-        </button>
-      </div>
-      <div class="saved-rm-section" id="savedRmSection">
-        <h3 class="saved-rm-title">Charges sauvegardées</h3>
-        <div id="savedRmList"></div>
-      </div>
-    </div>
-
-  </main>
+    </div></main>
 
   <script src="data.js"></script>
   <script src="app.js"></script>
