@@ -1,5 +1,5 @@
 // ============================================================
-//  FITPRO v4.2 — App Logic
+//  FITPRO v4.3 — App Logic
 //  © 2025 RémiRodriguez
 //  + Timer de repos automatique
 //  + Compteur de séries avec chrono
@@ -72,17 +72,19 @@ function formatDate() {
 function parseRestSeconds(restStr) {
   if (!restStr) return 0;
   const s = restStr.toLowerCase();
-  if (s.includes('2 min 30') || s.includes('2min30')) return 150;
-  if (s.includes('2 min') || s.includes('2min')) return 120;
-  if (s.includes('90 sec') || s.includes('90sec')) return 90;
-  if (s.includes('75 sec') || s.includes('75sec')) return 75;
-  if (s.includes('60 sec') || s.includes('60sec') || s.includes('1 min')) return 60;
-  if (s.includes('45 sec') || s.includes('45sec')) return 45;
-  if (s.includes('30 sec') || s.includes('30sec')) return 30;
-  if (s.includes('20 sec') || s.includes('20sec')) return 20;
-  if (s.includes('15 sec') || s.includes('15sec')) return 15;
-  // "enchaîner" = no rest
-  if (s.includes('enchaîner') || s.includes('0 sec')) return 0;
+  if (s.includes('enchaîner') || /\b0\s*sec/.test(s)) return 0;
+  // "X min Y sec" / "X min Y"
+  const minSec = s.match(/(\d+)\s*min(?:utes?)?\s*(\d+)/);
+  if (minSec) return parseInt(minSec[1]) * 60 + parseInt(minSec[2]);
+  // "X-Y min" → take the lower bound
+  const rangMin = s.match(/(\d+)-\d+\s*min/);
+  if (rangMin) return parseInt(rangMin[1]) * 60;
+  // "X min"
+  const minOnly = s.match(/(\d+)\s*min/);
+  if (minOnly) return parseInt(minOnly[1]) * 60;
+  // "X sec"
+  const secOnly = s.match(/(\d+)\s*sec/);
+  if (secOnly) return parseInt(secOnly[1]);
   return 0;
 }
 
