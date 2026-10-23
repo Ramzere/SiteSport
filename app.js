@@ -1,16 +1,13 @@
 // ============================================================
-//  FITPRO v4.1 — App Logic
+//  FITPRO v4.2 — App Logic
 //  © 2025 RémiRodriguez
 //  + Timer de repos automatique
-//  + Journal de charges avec progression
-//  + Prise en séance améliorée : multi-séries, +/- poids, remplissage auto
+//  + Compteur de séries avec chrono
 // ============================================================
 
 // ---------- STATE ----------
 let currentPage = 'today';
 let currentDayIdx = getTodayIdx();
-let rmResult = null;
-let selectedJournalExercise = null;
 
 // TIMER STATE
 let timerInterval = null;
@@ -30,39 +27,12 @@ function getTodayIdx() {
 function sk(suffix) { return 'fitpro_' + suffix; }
 function getChecked(d) { try { return JSON.parse(localStorage.getItem(sk('checked_'+d))) || {}; } catch { return {}; } }
 function setChecked(d, o) { localStorage.setItem(sk('checked_'+d), JSON.stringify(o)); }
-function getSavedRM() { try { return JSON.parse(localStorage.getItem(sk('rm'))) || {}; } catch { return {}; } }
-function setSavedRM(o) { localStorage.setItem(sk('rm'), JSON.stringify(o)); }
 function getTheme() { return localStorage.getItem(sk('theme')) || 'dark'; }
 function setThemeSt(t) { localStorage.setItem(sk('theme'), t); }
-
-// JOURNAL STORAGE — structure: { exId: [ { date, weight, reps, note }, ... ] }
-function getJournal() { try { return JSON.parse(localStorage.getItem(sk('journal'))) || {}; } catch { return {}; } }
-function setJournal(o) { localStorage.setItem(sk('journal'), JSON.stringify(o)); }
-
-function addJournalEntry(exId, weight, reps, note) {
-  const j = getJournal();
-  if (!j[exId]) j[exId] = [];
-  j[exId].unshift({ date: todayISO(), weight: parseFloat(weight), reps: parseInt(reps), note: note || '', ts: Date.now() });
-  // Keep max 52 entries per exercise
-  if (j[exId].length > 52) j[exId] = j[exId].slice(0, 52);
-  setJournal(j);
-}
-
-function deleteJournalEntry(exId, ts) {
-  const j = getJournal();
-  if (j[exId]) j[exId] = j[exId].filter(e => e.ts !== ts);
-  setJournal(j);
-}
 
 function todayISO() {
   const d = new Date();
   return d.toISOString().slice(0, 10);
-}
-
-function formatDateFR(iso) {
-  const [y, m, day] = iso.split('-');
-  const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
-  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
 }
 
 // ---------- THEME ----------
@@ -86,8 +56,6 @@ function showPage(name) {
   document.querySelector('[data-page="'+name+'"]').classList.add('active');
   if (name === 'today') renderToday();
   if (name === 'week') renderWeek();
-  if (name === 'journal') renderJournalPicker();
-  if (name === 'test') { populateRMSelect(); renderSavedRM(); }
 }
 
 function formatDate() {
@@ -226,12 +194,6 @@ function setSeriesDone(dayIdx, exId, n) {
 //  TODAY PAGE
 // ============================================================
 
-// Current log state
-let currentLogExId = '';
-let currentLogExName = '';
-// Multi-series log: array of {weight, reps}
-let currentLogSeries = [];
-
 function renderToday() {
   const dayData = PROGRAM[currentDayIdx];
   const checked = getChecked(currentDayIdx);
@@ -242,8 +204,6 @@ function renderToday() {
   document.getElementById('dayDuration').textContent = dayData.duration;
   document.getElementById('dayHero').style.setProperty('--day-color', dayData.color);
 
-  const saved = getSavedRM();
-  const journal = getJournal();
   let totalEx = 0, doneEx = 0;
   let html = '';
   const allExFlat = dayData.sections.flatMap(s => s.exercises);
@@ -263,25 +223,6 @@ function renderToday() {
       const flatIdx = allExFlat.findIndex(e => e.id === ex.id);
       const nextEx = allExFlat[flatIdx + 1];
       const nextName = nextEx ? nextEx.name : '';
-
-      // Suggested weight from 1RM
-      let suggestedKg = null;
-      if (ex.rmKey && saved[ex.rmKey]) {
-        suggestedKg = roundToNearest(saved[ex.rmKey].rm1 * (ex.targetPct || 0.75), 2.5);
-      }
-
-      // Last journal entries (max 3)
-      const jEntries = (journal[ex.id] || []).slice(0, 3);
-      const lastEntry = jEntries.length > 0 ? jEntries[0] : null;
-
-      const isWeighted = ex.rmKey || (!ex.name.toLowerCase().includes('vélo')
-        && !ex.name.toLowerCase().includes('rameur')
-        && !ex.name.toLowerCase().includes('marche sur')
-        && !ex.name.toLowerCase().includes('battements')
-        && !ex.name.toLowerCase().includes('crawl')
-        && !ex.name.toLowerCase().includes('brasse')
-        && !ex.name.toLowerCase().includes('dos crawlé')
-        && !ex.name.toLowerCase().includes('pull-buoy'));
 
       // Series dots
       const nSets = parseSetsCount(ex.sets);
@@ -316,12 +257,6 @@ function renderToday() {
           ${ex.rest ? `<p class="ex-rest">⏱ ${ex.rest}</p>` : ''}
           ${ex.note ? `<p class="ex-note">${ex.note}</p>` : ''}
           ${ex.warn ? `<p class="ex-warn">⚠️ ${ex.warn}</p>` : ''}
-          ${suggestedKg !== null ? `<div class="hint-row"><span class="hint-badge">📊 Suggéré</span><span class="hint-val">${suggestedKg} kg</span></div>` : ''}
-          ${lastEntry ? `<div class="hint-row"><span class="hint-badge">🕐 Dernière fois</span><span class="hint-val">${lastEntry.weight} kg × ${lastEntry.reps}</span><span class="hint-date">${formatDateFR(lastEntry.date)}</span></div>` : ''}
-          ${isWeighted ? `<button class="log-btn" onclick="openLogModal('${ex.id}','${ex.name.replace(/'/g,"\'")}',${suggestedKg||0},${lastEntry ? lastEntry.weight : 0},${lastEntry ? lastEntry.reps : 0})">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            ${jEntries.length > 0 ? 'Saisir cette séance' : 'Enregistrer charges'}
-          </button>` : ''}
         </div>
       </div>`;
     });
@@ -345,7 +280,6 @@ function renderToday() {
   }
 
   document.getElementById('sessionContent').innerHTML = html;
-  injectLogModal();
 
   const pct = totalEx > 0 ? Math.round((doneEx / totalEx) * 100) : 0;
   document.getElementById('progressPill').textContent = pct + '% complété';
@@ -353,172 +287,7 @@ function renderToday() {
   if (pct === 100 && totalEx > 0) showCelebration();
 }
 
-// ── MODAL INJECTION ──────────────────────────────────────────
-function injectLogModal() {
-  if (document.getElementById('logModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'logModal';
-  modal.className = 'log-modal';
-  modal.style.display = 'none';
-  modal.innerHTML = `
-    <div class="log-modal-card">
-      <!-- Header -->
-      <div class="lm-header">
-        <div>
-          <p class="lm-title" id="logModalTitle">Enregistrer</p>
-          <p class="lm-subtitle" id="logModalSub"></p>
-        </div>
-        <button class="lm-close" onclick="closeLogModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-
-      <!-- Série input -->
-      <div class="lm-input-block">
-        <p class="lm-section-label">Nouvelle série</p>
-        <div class="lm-weight-row">
-          <button class="lm-step-btn" onclick="stepWeight(-2.5)">−2.5</button>
-          <div class="lm-field-wrap">
-            <input class="lm-input-big" type="number" id="logWeight" placeholder="kg" min="0" max="500" step="0.5" inputmode="decimal"/>
-            <span class="lm-input-unit">kg</span>
-          </div>
-          <button class="lm-step-btn" onclick="stepWeight(+2.5)">+2.5</button>
-        </div>
-        <div class="lm-reps-row">
-          <button class="lm-step-btn" onclick="stepReps(-1)">−1</button>
-          <div class="lm-field-wrap">
-            <input class="lm-input-big" type="number" id="logReps" placeholder="reps" min="1" max="100" inputmode="numeric"/>
-            <span class="lm-input-unit">reps</span>
-          </div>
-          <button class="lm-step-btn" onclick="stepReps(+1)">+1</button>
-        </div>
-        <button class="lm-add-serie-btn" onclick="addSerie()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ajouter cette série
-        </button>
-      </div>
-
-      <!-- Series logged so far -->
-      <div id="logSeriesList" class="lm-series-list"></div>
-
-      <!-- Note -->
-      <div class="lm-note-row">
-        <input class="lm-note-input" type="text" id="logNote" placeholder="Note (feeling, douleur...)"/>
-      </div>
-
-      <!-- Footer -->
-      <div class="lm-footer">
-        <button class="log-cancel-btn" onclick="closeLogModal()">Annuler</button>
-        <button class="log-save-btn" onclick="saveLogEntry()">Sauvegarder</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-}
-
-// ── MODAL LOGIC ──────────────────────────────────────────────
-function openLogModal(exId, exName, suggestedKg, lastWeight, lastReps) {
-  currentLogExId = exId;
-  currentLogExName = exName;
-  currentLogSeries = [];
-
-  document.getElementById('logModalTitle').textContent = exName;
-
-  // Build subtitle from suggestions
-  let sub = '';
-  if (suggestedKg > 0) sub += `📊 Suggéré : ${suggestedKg} kg`;
-  if (lastWeight > 0) sub += (sub ? '  ·  ' : '') + `🕐 Dernière : ${lastWeight} kg × ${lastReps}`;
-  document.getElementById('logModalSub').textContent = sub;
-
-  // Pre-fill with last weight or suggested
-  const prefillW = lastWeight > 0 ? lastWeight : (suggestedKg > 0 ? suggestedKg : '');
-  const prefillR = lastReps > 0 ? lastReps : '';
-  document.getElementById('logWeight').value = prefillW;
-  document.getElementById('logReps').value = prefillR;
-  document.getElementById('logNote').value = '';
-
-  renderSeriesList();
-  document.getElementById('logModal').style.display = 'flex';
-  setTimeout(() => document.getElementById('logWeight').focus(), 120);
-}
-
-function closeLogModal() {
-  document.getElementById('logModal').style.display = 'none';
-  currentLogSeries = [];
-}
-
-function stepWeight(delta) {
-  const el = document.getElementById('logWeight');
-  const cur = parseFloat(el.value) || 0;
-  el.value = Math.max(0, roundToNearest(cur + delta, 0.5));
-}
-
-function stepReps(delta) {
-  const el = document.getElementById('logReps');
-  const cur = parseInt(el.value) || 0;
-  el.value = Math.max(1, cur + delta);
-}
-
-function addSerie() {
-  const w = parseFloat(document.getElementById('logWeight').value);
-  const r = parseInt(document.getElementById('logReps').value);
-  if (!w || !r) { showToast('⚠️ Entre poids et reps'); return; }
-  currentLogSeries.push({ weight: w, reps: r });
-  renderSeriesList();
-  if (navigator.vibrate) navigator.vibrate(8);
-  // keep same weight for next series, clear reps for re-entry
-  // (user usually keeps same weight, changes reps)
-}
-
-function removeSerie(idx) {
-  currentLogSeries.splice(idx, 1);
-  renderSeriesList();
-}
-
-function renderSeriesList() {
-  const el = document.getElementById('logSeriesList');
-  if (!el) return;
-  if (currentLogSeries.length === 0) {
-    el.innerHTML = '';
-    return;
-  }
-  const totalVol = currentLogSeries.reduce((s, e) => s + e.weight * e.reps, 0);
-  let html = `<p class="lm-section-label">Séries enregistrées <span class="lm-vol-badge">Vol. ${totalVol.toFixed(0)} kg</span></p>`;
-  currentLogSeries.forEach((s, i) => {
-    html += `<div class="lm-serie-row">
-      <span class="lm-serie-num">S${i+1}</span>
-      <span class="lm-serie-val">${s.weight} kg × ${s.reps}</span>
-      <button class="lm-serie-del" onclick="removeSerie(${i})" aria-label="Supprimer">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>`;
-  });
-  el.innerHTML = html;
-}
-
-function saveLogEntry() {
-  const note = document.getElementById('logNote').value;
-
-  // If there are logged series, save each one
-  if (currentLogSeries.length > 0) {
-    currentLogSeries.forEach((s, i) => {
-      addJournalEntry(currentLogExId, s.weight, s.reps, i === 0 ? note : '');
-    });
-    closeLogModal();
-    renderToday();
-    showToast(`✅ ${currentLogSeries.length} série${currentLogSeries.length > 1 ? 's' : ''} enregistrée${currentLogSeries.length > 1 ? 's' : ''}`);
-    return;
-  }
-
-  // Fallback: single entry from weight/reps fields
-  const w = document.getElementById('logWeight').value;
-  const r = document.getElementById('logReps').value;
-  if (!w || !r) { showToast('⚠️ Ajoute au moins une série'); return; }
-  addJournalEntry(currentLogExId, w, r, note);
-  closeLogModal();
-  renderToday();
-  showToast('✅ Charge enregistrée');
-}
-
+// ── TOAST / CELEBRATION ──────────────────────────────────────
 function showToast(msg) {
   let t = document.getElementById('toast');
   if (!t) {
@@ -637,238 +406,7 @@ function goToDay(idx) {
   showPage('today');
 }
 
-// ============================================================
-//  JOURNAL PAGE
-// ============================================================
 
-// Build list of all weighted exercises from program
-function getWeightedExercises() {
-  const list = [];
-  const seen = new Set();
-  PROGRAM.forEach(day => {
-    day.sections.forEach(sec => {
-      sec.exercises.forEach(ex => {
-        if (ex.rmKey && !seen.has(ex.id)) {
-          seen.add(ex.id);
-          list.push({ id: ex.id, name: ex.name, day: day.label, color: day.color });
-        }
-      });
-    });
-  });
-  return list;
-}
-
-function renderJournalPicker() {
-  const exList = getWeightedExercises();
-  if (!selectedJournalExercise && exList.length > 0) selectedJournalExercise = exList[0].id;
-
-  let html = '<div class="journal-picker-scroll">';
-  exList.forEach(ex => {
-    html += `<button class="journal-pill ${selectedJournalExercise === ex.id ? 'active' : ''}"
-      style="${selectedJournalExercise === ex.id ? '--pill-color:'+ex.color : ''}"
-      onclick="selectJournalEx('${ex.id}')">${ex.name.split(' ').slice(0,3).join(' ')}</button>`;
-  });
-  html += '</div>';
-  document.getElementById('journalPicker').innerHTML = html;
-  renderJournalContent();
-}
-
-function selectJournalEx(exId) {
-  selectedJournalExercise = exId;
-  renderJournalPicker();
-}
-
-function renderJournalContent() {
-  if (!selectedJournalExercise) {
-    document.getElementById('journalContent').innerHTML = '<p style="padding:20px;color:var(--text3);font-size:13px">Sélectionne un exercice</p>';
-    return;
-  }
-
-  const journal = getJournal();
-  const entries = journal[selectedJournalExercise] || [];
-  const exList = getWeightedExercises();
-  const exInfo = exList.find(e => e.id === selectedJournalExercise);
-
-  let html = '';
-
-  // Stats summary
-  if (entries.length > 0) {
-    const weights = entries.map(e => e.weight);
-    const maxW = Math.max(...weights);
-    const lastW = entries[0].weight;
-    const firstW = entries[entries.length-1].weight;
-    const progression = lastW - firstW;
-
-    html += `<div class="journal-stats">
-      <div class="jstat-card">
-        <p class="jstat-label">Max soulevé</p>
-        <p class="jstat-value" style="color:${exInfo ? exInfo.color : 'var(--text)'}">${maxW} kg</p>
-      </div>
-      <div class="jstat-card">
-        <p class="jstat-label">Dernière séance</p>
-        <p class="jstat-value">${lastW} kg</p>
-      </div>
-      <div class="jstat-card">
-        <p class="jstat-label">Progression</p>
-        <p class="jstat-value ${progression >= 0 ? 'pos' : 'neg'}">${progression >= 0 ? '+' : ''}${progression.toFixed(1)} kg</p>
-      </div>
-    </div>`;
-
-    // Mini bar chart (last 8 entries reversed = oldest first)
-    const chartEntries = [...entries].reverse().slice(-8);
-    const maxChart = Math.max(...chartEntries.map(e => e.weight));
-    html += `<div class="journal-chart">
-      <p class="chart-title">Évolution du poids (${chartEntries.length} dernières séances)</p>
-      <div class="chart-bars">`;
-    chartEntries.forEach(e => {
-      const h = Math.round((e.weight / maxChart) * 100);
-      html += `<div class="chart-col">
-        <span class="chart-val">${e.weight}</span>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:${h}%;background:${exInfo ? exInfo.color : '#888'}"></div>
-        </div>
-        <span class="chart-date">${e.date.slice(5).replace('-','/')}</span>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // Entry list
-  html += `<div class="journal-entries-header">
-    <p class="journal-entries-title">Historique complet</p>
-  </div>`;
-
-  if (entries.length === 0) {
-    html += `<div class="journal-empty">
-      <p>Aucune entrée pour cet exercice.</p>
-      <p style="font-size:12px;margin-top:6px">Coche un exercice et clique sur "+ Enregistrer charges" pendant ta séance.</p>
-    </div>`;
-  } else {
-    entries.forEach(e => {
-      const vol = (e.weight * e.reps).toFixed(0);
-      html += `<div class="journal-entry-card">
-        <div class="jentry-left">
-          <p class="jentry-date">${formatDateFR(e.date)}</p>
-          ${e.note ? `<p class="jentry-note">${e.note}</p>` : ''}
-        </div>
-        <div class="jentry-right">
-          <p class="jentry-main">${e.weight} kg × ${e.reps}</p>
-          <p class="jentry-vol">Vol. ${vol} kg</p>
-        </div>
-        <button class="jentry-delete" onclick="deleteEntry('${selectedJournalExercise}', ${e.ts})" aria-label="Supprimer">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
-        </button>
-      </div>`;
-    });
-  }
-
-  document.getElementById('journalContent').innerHTML = html;
-}
-
-function deleteEntry(exId, ts) {
-  deleteJournalEntry(exId, ts);
-  renderJournalContent();
-}
-
-// ============================================================
-//  1RM PAGE
-// ============================================================
-
-function populateRMSelect() {
-  const sel = document.getElementById('rmExercise');
-  if (sel.options.length > 0) return;
-  Object.entries(RM_EXERCISES).forEach(([k, v]) => {
-    const opt = document.createElement('option');
-    opt.value = k; opt.textContent = v.label;
-    sel.appendChild(opt);
-  });
-}
-
-function calculateRM() {
-  const weight = parseFloat(document.getElementById('rmWeight').value);
-  const reps = parseInt(document.getElementById('rmReps').value);
-  if (!weight || !reps || weight <= 0 || reps <= 0) { alert('Entre un poids et un nombre de reps valides.'); return; }
-
-  const rm1 = weight / (1.0278 - 0.0278 * reps);
-  const rm1r = roundToNearest(rm1, 0.5);
-  const exerciseKey = document.getElementById('rmExercise').value;
-  const exerciseLabel = RM_EXERCISES[exerciseKey].label;
-
-  rmResult = { rm1: rm1r, weight, reps, exerciseKey, exerciseLabel, date: new Date().toLocaleDateString('fr-FR') };
-  document.getElementById('rmEstimated').textContent = rm1r + ' kg';
-
-  const zones = [
-    { label: 'Échauffement',       pct: 0.50, repsRec: '15–20', color: '#6EE7B7' },
-    { label: 'Endurance force',    pct: 0.60, repsRec: '15',    color: '#34D399' },
-    { label: 'Hypertrophie légère',pct: 0.70, repsRec: '12–15', color: '#10B981' },
-    { label: 'Hypertrophie',       pct: 0.75, repsRec: '10–12', color: '#059669' },
-    { label: 'Force–Hypertrophie', pct: 0.80, repsRec: '8–10',  color: '#047857' },
-    { label: 'Force',              pct: 0.85, repsRec: '6–8',   color: '#065F46' },
-    { label: 'Force maximale',     pct: 0.90, repsRec: '4–6',   color: '#064E3B' },
-  ];
-
-  document.getElementById('rmZones').innerHTML = zones.map(z => {
-    const kg = roundToNearest(rm1 * z.pct, 2.5);
-    return `<div class="zone-row">
-      <div class="zone-left"><span class="zone-dot" style="background:${z.color}"></span><span class="zone-label">${z.label}</span></div>
-      <div class="zone-right"><span class="zone-kg">${kg} kg</span><span class="zone-reps">${z.repsRec} reps</span></div>
-    </div>`;
-  }).join('');
-
-  const setsData = [
-    { type: 'Séance intermédiaire', sets:'4', reps:'8–10', pct:0.78 },
-    { type: 'Séance force',         sets:'5', reps:'6',    pct:0.85 },
-  ];
-  document.getElementById('rmSetsTable').innerHTML =
-    `<p class="sets-table-title">Prescription — ${exerciseLabel}</p>` +
-    setsData.map(s => {
-      const kg = roundToNearest(rm1 * s.pct, 2.5);
-      return `<div class="sets-row"><span class="sets-type">${s.type}</span><span class="sets-config">${s.sets} × ${s.reps} @ <strong>${kg} kg</strong></span></div>`;
-    }).join('');
-
-  document.getElementById('rmResult').style.display = 'block';
-  document.getElementById('rmResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function saveRM() {
-  if (!rmResult) return;
-  const saved = getSavedRM();
-  saved[rmResult.exerciseKey] = { rm1: rmResult.rm1, label: rmResult.exerciseLabel, date: rmResult.date, weight: rmResult.weight, reps: rmResult.reps };
-  setSavedRM(saved);
-  renderSavedRM();
-  const btn = document.getElementById('saveBtnRM');
-  btn.textContent = '✅ Sauvegardé !';
-  setTimeout(() => {
-    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder ces charges`;
-  }, 2000);
-}
-
-function deleteRM(key) {
-  const saved = getSavedRM(); delete saved[key]; setSavedRM(saved); renderSavedRM();
-}
-
-function renderSavedRM() {
-  const saved = getSavedRM();
-  const keys = Object.keys(saved);
-  const section = document.getElementById('savedRmSection');
-  if (keys.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  document.getElementById('savedRmList').innerHTML = keys.map(k => {
-    const r = saved[k];
-    return `<div class="saved-rm-card">
-      <div class="saved-rm-left">
-        <p class="saved-rm-name">${r.label}</p>
-        <p class="saved-rm-detail">Testé : ${r.weight} kg × ${r.reps} reps · ${r.date}</p>
-      </div>
-      <div class="saved-rm-right">
-        <span class="saved-rm-value">${r.rm1} kg</span>
-        <button class="delete-rm-btn" onclick="deleteRM('${k}')" aria-label="Supprimer">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
 
 // ---------- UTILS ----------
 function roundToNearest(val, step) { return Math.round(val / step) * step; }
@@ -878,10 +416,5 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getTheme());
   document.getElementById('headerDate').textContent = formatDate();
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-  // Close log modal on backdrop click
-  document.addEventListener('click', e => {
-    const modal = document.getElementById('logModal');
-    if (modal && e.target === modal) closeLogModal();
-  });
   renderToday();
 });
