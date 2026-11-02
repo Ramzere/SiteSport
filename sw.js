@@ -4,7 +4,7 @@
 //  Cache-first strategy : fonctionne 100% hors-ligne
 // ============================================================
 
-const CACHE_NAME = 'fitpro-v4.4';
+const CACHE_NAME = 'fitpro-v4.4b';
 
 const ASSETS = [
   './',
