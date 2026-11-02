@@ -1,5 +1,5 @@
 // ============================================================
-//  FITPRO v4.3 — App Logic
+//  FITPRO v4.4 — App Logic
 //  © 2025 RémiRodriguez
 //  + Timer de repos automatique
 //  + Compteur de séries avec chrono
@@ -27,6 +27,8 @@ function getTodayIdx() {
 function sk(suffix) { return 'fitpro_' + suffix; }
 function getChecked(d) { try { return JSON.parse(localStorage.getItem(sk('checked_'+d))) || {}; } catch { return {}; } }
 function setChecked(d, o) { localStorage.setItem(sk('checked_'+d), JSON.stringify(o)); }
+function getLastWeight(exId) { return parseFloat(localStorage.getItem(sk('w_'+exId))) || null; }
+function setLastWeight(exId, kg) { if (kg > 0) localStorage.setItem(sk('w_'+exId), String(kg)); }
 function getTheme() { return localStorage.getItem(sk('theme')) || 'dark'; }
 function setThemeSt(t) { localStorage.setItem(sk('theme'), t); }
 
@@ -226,6 +228,11 @@ function renderToday() {
       const nextEx = allExFlat[flatIdx + 1];
       const nextName = nextEx ? nextEx.name : '';
 
+      // Last weight
+      const noWeightKeywords = ['vélo','rameur','marche','battements','crawl','brasse','dos crawlé','pull-buoy','cardio','mobilité','gainage','planche','latéral','crunch','lever de jambes'];
+      const isWeighted = !noWeightKeywords.some(k => ex.name.toLowerCase().includes(k));
+      const lastWeight = isWeighted ? getLastWeight(ex.id) : null;
+
       // Series dots
       const nSets = parseSetsCount(ex.sets);
       const seriesDone = getSeriesDone(currentDayIdx, ex.id);
@@ -259,6 +266,16 @@ function renderToday() {
           ${ex.rest ? `<p class="ex-rest">⏱ ${ex.rest}</p>` : ''}
           ${ex.note ? `<p class="ex-note">${ex.note}</p>` : ''}
           ${ex.warn ? `<p class="ex-warn">⚠️ ${ex.warn}</p>` : ''}
+          ${isWeighted ? `<div class="weight-row">
+            <label class="weight-label">🏋️</label>
+            <input class="weight-input" type="number" inputmode="decimal" min="0" max="300" step="0.5"
+              placeholder="${lastWeight ? lastWeight + ' kg' : 'kg'}"
+              value="${lastWeight || ''}"
+              onchange="setLastWeight('${ex.id}', parseFloat(this.value))"
+              aria-label="Poids pour ${ex.name}"/>
+            <span class="weight-unit">kg</span>
+            ${lastWeight ? `<span class="weight-prev">Dernière : ${lastWeight} kg</span>` : ''}
+          </div>` : ''}
         </div>
       </div>`;
     });

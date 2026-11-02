@@ -597,3 +597,27 @@ body.dark .weight-input:focus { box-shadow: 0 0 0 2px rgba(232,255,71,0.15); }
 .free-msg   { font-family: var(--font-display); font-size: 28px; letter-spacing: 2px; color: var(--text); margin-bottom: 8px; }
 .free-sub   { font-size: 13px; color: var(--text3); font-weight: 300; }
 .week-free-label { font-size: 13px; color: var(--text3); margin-top: 8px; }
+
+/* ── v4.4 — weight row in-card ── */
+.weight-row {
+  display: flex; align-items: center; gap: 6px; margin-top: 8px;
+  flex-wrap: wrap;
+}
+.weight-label { font-size: 14px; }
+.weight-prev  { font-size: 11px; color: var(--text3); margin-left: 4px; }
+
+/* ── v4.4 — reset button top ── */
+.day-hero-top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 4px;
+}
+.reset-btn-top {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.6); font-family: var(--font-body); font-size: 12px;
+  font-weight: 500; cursor: pointer; letter-spacing: .4px;
+  transition: all 0.2s;
+}
+.reset-btn-top:active { background: rgba(255,255,255,0.15); transform: scale(0.96); }
+body.light .reset-btn-top { border-color: rgba(0,0,0,0.15); background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.4); }

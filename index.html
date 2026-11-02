@@ -63,7 +63,13 @@
     <!-- PAGE TODAY -->
     <div class="page active" id="page-today">
       <div class="day-hero" id="dayHero">
-        <div class="day-badge" id="dayBadge">LUNDI</div>
+        <div class="day-hero-top">
+          <div class="day-badge" id="dayBadge">LUNDI</div>
+          <button class="reset-btn-top" onclick="resetDay()" aria-label="Réinitialiser la séance">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Reset
+          </button>
+        </div>
         <h1 class="day-title" id="dayTitle">Push</h1>
         <p class="day-subtitle" id="daySubtitle">Pecto · Épaules · Triceps</p>
         <div class="day-meta">
@@ -78,14 +84,8 @@
         <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
       </div>
       <div class="session-content" id="sessionContent"></div>
-      <div class="reset-wrap">
-        <button class="reset-btn" onclick="resetDay()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-          Réinitialiser la séance
-        </button>
-      </div>
       <div class="app-footer">
-        <span class="app-version">v4.3</span>
+        <span class="app-version">v4.4</span>
         <span class="app-sep">·</span>
         <span class="app-copyright">© 2025 RémiRodriguez</span>
       </div>
