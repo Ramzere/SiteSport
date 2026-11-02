@@ -229,7 +229,7 @@ function renderToday() {
       const nextName = nextEx ? nextEx.name : '';
 
       // Last weight
-      const noWeightKeywords = ['vélo','rameur','marche','battements','crawl','brasse','dos crawlé','pull-buoy','cardio','mobilité','gainage','planche','latéral','crunch','lever de jambes'];
+      const noWeightKeywords = ['vélo','rameur','marche','battements','crawl','brasse','dos crawlé','pull-buoy','cardio','mobilité','gainage planche','gainage latéral','crunch','lever de jambes'];
       const isWeighted = !noWeightKeywords.some(k => ex.name.toLowerCase().includes(k));
       const lastWeight = isWeighted ? getLastWeight(ex.id) : null;
 
